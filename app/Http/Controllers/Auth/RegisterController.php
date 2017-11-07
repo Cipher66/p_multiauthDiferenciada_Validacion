@@ -4,10 +4,15 @@ namespace App\Http\Controllers\Auth;
 
 use App\User;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Str;
+use Mail;
+use App\Mail\verifyEmail;
+
+/* ------------------------------ */
+
+
 
 class RegisterController extends Controller
 {
@@ -64,42 +69,27 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
+            'verifyToken' => Str::random(40),
         ]);
+        $thisUser = User::findOrFail($user->id);
+        $this->sendEmail($thisUser);
+        return $user;
     }
-    protected function register(Request $request){
-        $input = $request->all();
-        $validator = $this->validator($input);
 
-        if ($validator->passes()){
-            $data = $this->create($input)->toArray();
+    public function sendEmail($thisUser){
 
-            $data['token'] = str_random(25);
-
-            $user = User::find($data['id']);
-            $user->token = $data['token'];
-            $user->save();
-
-            Mail::send('mails.confirmation', $data, function ($message) use($data){
-                $message->to($data['email']);
-                $message->subject('Confirmación de registro');
-            });
-            return redirect(route('login'))->with('status', 'Se ha enviado un e-mail de confirmación, comprueba tu correo electrónico');
-        }
-        return redirect(route('login'))->with('status', $validator->errors());
+        Mail::to($thisUser['email'])->send(new verifyEmail($thisUser));
     }
-    public function confirmation($token){
-        $user = User::where('token', $token)->first();
 
-        if (!is_null($user)){
-            $user->confirmed = 1;
-            $user->token="";
-            $user->save();
-            return redirect(route('login'))->with('status', 'Tu activación se ha completado');
-        }
-        return redirect(route('login'))->with('status', 'Algo ha ido mal');
+    public function verifyEmailFirst(){
+
+        return view('email.verifyEmailFirst');
+    }
+    public function sendEmailDone($email, $verifyToken){
+
     }
 }

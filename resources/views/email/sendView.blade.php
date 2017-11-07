@@ -1,0 +1,1 @@
+Para comprobar el correo <a href="{{ route('sendEmailDone',["email" => $user->email, "verifyToken"=> $user->verifyToken]) }}">Haga clic aquí</a>
