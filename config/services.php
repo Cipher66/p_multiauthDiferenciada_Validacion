@@ -15,8 +15,8 @@ return [
     */
 
     'mailgun' => [
-        'domain' => env('MAILGUN_DOMAIN'),
-        'secret' => env('MAILGUN_SECRET'),
+        'domain' => env('diagnostico.zubiri.com'),
+        'secret' => env('key-84fc318d2b2d814fc14dbcfb4cdca785'),
     ],
 
     'ses' => [
